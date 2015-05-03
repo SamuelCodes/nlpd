@@ -1,8 +1,39 @@
-# encoding=utf8
 import nltk
 import re
+import itertools
 from nltk.probability import *
+from nltk import word_tokenize, sent_tokenize
+from nltk import Tree
 
+def tree2dict(tree):
+    return {tree.label(): [tree2dict(t)  if isinstance(t, Tree) else t
+                        for t in tree]}
+
+class TreeExtractor:
+    def tree(self, text):
+        from nltk.corpus import treebank
+        t = treebank.parsed_sents([word_tokenize(s) for s in sent_tokenize(text)])
+        return tree2dict(t)
+
+class TwitterFeatureExtractor:
+    def extract(self, corpus):
+        from nltk.stem import WordNetLemmatizer
+        from nltk.corpus import stopwords
+        from nltk.tokenize import WhitespaceTokenizer
+        exclude_words = stopwords.words('english')
+        exclude_words.append('rt')
+        exclude_words.append('&amp;')
+        tok = WhitespaceTokenizer()
+        lem = WordNetLemmatizer()
+        tsents = [tok.tokenize(sent) for sent in corpus]
+        norm_words = []
+        for sent in tsents:
+            for word in sent:
+                if word.startswith('http://'): continue
+                nword = lem.lemmatize(word.lower())
+                if nword not in exclude_words:
+                    norm_words.append(nword)
+        return nltk.FreqDist(norm_words)
 
 class Extractor:
     def __init__(self, corpus):
@@ -43,7 +74,7 @@ class Extractor:
 
         def normalize(word):
             """lowercases and lemmatizes word."""
-            word = word.lower().encode('utf8')
+            word = word.lower()
             word = lemmatizer.lemmatize(word)
             return word
 
@@ -64,7 +95,7 @@ class Extractor:
         noun_phrases = []
 
         for term in terms:
-            noun_phrases.append(u" ".join(term))
+            noun_phrases.append(" ".join(term))
 
         fdist = FreqDist(noun_phrases)
         pdist = UniformProbDist(noun_phrases)

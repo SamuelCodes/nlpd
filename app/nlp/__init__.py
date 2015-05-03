@@ -1,5 +1,7 @@
 from nlp.corpora import *
 from nlp.extractors import *
+from nlp.db import *
+from nlp.test import *
 
 def random_text():
     import os

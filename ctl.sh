@@ -5,7 +5,9 @@ buildapp() {
 }
 
 runapp(){
-  docker run --rm -it -v /Users/samc/Projects/NLP:/training-data --volumes-from nlp_data samuelcodes/nlp $1
+  docker run --rm -it -v /Users/samc/Projects/NLP:/training-data \
+    --link gqstack_mongo_1:mongo \
+    --volumes-from nlp_data -p 0.0.0.0:8000:8000 samuelcodes/nlp $1
 }
 
 create_data_container(){

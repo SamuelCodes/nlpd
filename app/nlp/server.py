@@ -1,19 +1,29 @@
-# encoding=utf8
-import web
+import tornado.ioloop
+import tornado.web
+import tornado.wsgi
 import nlp
 import json
 from nlp import *
 
-urls = (
-    '/extract/noun-phrases', 'ExtractNounPhrases'
-)
+class NounPhraseHandler(tornado.web.RequestHandler):
+    def post(self):
+        content = str(self.request.body)
+        e = Extractor(content)
+        self.write(str(json.dumps(e.noun_phrases())))
 
-app = web.application(urls, globals())
-wsgiapp = app.wsgifunc()
+class TreeExtractorHandler(tornado.web.RequestHandler):
+    def post(self):
+        content = self.request.body
+        e = TreeExtractor()
+        self.write(json.dumps(e.tree(content)))
 
-class ExtractNounPhrases:
-    def POST(self):
-        data = unicode(web.data())
-        extractor = Extractor(data)
-        web.header('Content-Type', 'application/json')
-        return json.dumps(extractor.noun_phrases())
+application = tornado.web.Application([
+    (r"/extract/noun-phrases", NounPhraseHandler),
+    (r"/extract/tree", TreeExtractorHandler),
+])
+
+wsgiapp = tornado.wsgi.WSGIAdapter(application)
+
+if __name__ == "__main__":
+    application.listen(8000)
+    tornado.ioloop.IOLoop.instance().start()

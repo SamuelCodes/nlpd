@@ -1,11 +1,11 @@
 #!/bin/bash
 
 start_server(){
-  gunicorn -w 4 -b 0.0.0.0:8000 nlp.server:wsgiapp
+  uwsgi --socket 0.0.0.0:8000 --protocol=http --wsgi-file nlp/server.py --callable wsgiapp
 }
 
 console(){
-  ipython -i -c "import nlp; from nlp import *"
+  ipython3 -i -c "import nlp; from nlp import *"
 }
 
 case $1 in

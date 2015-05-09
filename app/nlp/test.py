@@ -7,3 +7,4 @@ def test_twitter_extract(username):
     tsents=[r['text'] for r in t['tweets']]
     te = TwitterFeatureExtractor()
     return te.extract(tsents)
+

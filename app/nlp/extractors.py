@@ -1,4 +1,5 @@
 import nltk
+import gensim
 import re
 import itertools
 from nltk.probability import *
@@ -8,6 +9,77 @@ from nltk import Tree
 def tree2dict(tree):
     return {tree.label(): [tree2dict(t)  if isinstance(t, Tree) else t
                         for t in tree]}
+
+
+class DefaultPreprocessor:
+
+    def __init__(self, text):
+        self.text = text
+        self.stemmer = nltk.stem.WordNetLemmatizer()
+        self.tokenizer = nltk.tokenize.RegexpTokenizer('\w+')
+        self.stopwords = nltk.corpus.stopwords.words('english')
+        self.append_stopwords()
+
+    def append_stopwords(self):
+        self.stopwords.append('rt')
+        self.stopwords.append('&nbsp;')
+
+    def acceptable_token(self, word):
+        if word in self.stopwords: return False
+        if len(word) <= 2: return False
+        return True
+
+    def sentences(self):
+        return sent_tokenize(self.text)
+
+    def normalize(self, word):
+        return self.stemmer.lemmatize(word.lower())
+
+    def tokenize(self, string):
+        with_stopwords = [self.normalize(tok) for tok in self.tokenizer.tokenize(string)]
+        return [word for word in with_stopwords if self.acceptable_token(word)]
+
+    def tokenized_sentences(self):
+        sents = [[word for word in self.tokenize(sent)] for sent in self.sentences()]
+        bigram_t = gensim.models.Phrases(sents)
+        trigram_t = gensim.models.Phrases(bigram_t[sents])
+        return trigram_t[sents]
+
+    def flattened_tokenized_sentences(self):
+        sents = self.tokenized_sentences()
+        return list(itertools.chain(*sents))
+
+    def dictionary(self):
+        return gensim.corpora.Dictionary(self.tokenized_sentences())
+
+    def doc2bow_corpus(self):
+        return [self.dictionary().doc2bow(text) for text in self.tokenized_sentences()]
+
+
+
+class AnalyzeText:
+
+    def __init__(self, text):
+        self.text = text
+        self.preprocessor = DefaultPreprocessor(self.text)
+        self.dictionary = self.preprocessor.dictionary()
+        self.corpus = self.preprocessor.doc2bow_corpus()
+
+    def word2vec(self):
+        return gensim.models.Word2Vec(self.preprocessor.tokenized_sentences())
+
+    def freq_dist(self):
+        return nltk.FreqDist(self.preprocessor.flattened_tokenized_sentences())
+
+    def tfidf(self):
+        return gensim.models.TfidfModel(self.corpus)
+
+    def lsi(self):
+        return gensim.models.LsiModel(self.tfidf_model[self.corpus], id2word=self.dictionary, num_topics=100)
+
+    def analyze(self):
+        return self.sentences
+
 
 class TreeExtractor:
     def tree(self, text):

@@ -18,6 +18,7 @@ RUN pip3 install --upgrade Pyro4
 RUN pip3 install --upgrade tornado
 RUN pip3 install --upgrade uwsgi
 RUN pip3 install --upgrade pymongo
+RUN pip3 install --upgrade scikit-learn
 
 # Create application directories
 RUN mkdir -p /app/data

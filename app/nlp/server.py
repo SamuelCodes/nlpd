@@ -36,7 +36,7 @@ class EvalExtractorHandler(tornado.web.RequestHandler):
         content = self.request.body
         local_vars = { 'document': document }
         code = compile(ast.parse(content), '<input>', mode='exec')
-        eval(code, local_vars)
+        eval(code, globals(), local_vars)
         if 'json_output' in local_vars:
             self.write(json.dumps(local_vars['json_output']))
         else:

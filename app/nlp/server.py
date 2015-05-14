@@ -3,30 +3,6 @@ import tornado.web
 import tornado.wsgi
 import nlp
 import json
-from nlp import *
-
-class AnalyzeHandler(tornado.web.RequestHandler):
-    def post(self, docdef):
-        collection, doc_id = docdef.split('/')
-        print(collection)
-        print(doc_id)
-
-        doc = get_document(collection, doc_id)
-
-        analysis = dict()
-        at = AnalyzeText(doc['text'])
-
-class NounPhraseHandler(tornado.web.RequestHandler):
-    def post(self):
-        content = str(self.request.body)
-        e = Extractor(content)
-        self.write(str(json.dumps(e.noun_phrases())))
-
-class TreeExtractorHandler(tornado.web.RequestHandler):
-    def post(self):
-        content = self.request.body
-        e = TreeExtractor()
-        self.write(json.dumps(e.tree(content)))
 
 class EvalExtractorHandler(tornado.web.RequestHandler):
     def post(self, docref):
@@ -43,9 +19,6 @@ class EvalExtractorHandler(tornado.web.RequestHandler):
             self.write(json.dumps({'status': 'ok'}))
 
 application = tornado.web.Application([
-    (r"/analyze/(.*)", AnalyzeHandler),
-    (r"/extract/noun-phrases", NounPhraseHandler),
-    (r"/extract/tree", TreeExtractorHandler),
     (r"/eval/(.*)", EvalExtractorHandler),
 ])
 

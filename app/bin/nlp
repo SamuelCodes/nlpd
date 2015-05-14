@@ -5,7 +5,7 @@ start_server(){
 }
 
 console(){
-  ipython3 -i -c "import nlp; from nlp import *"
+  ipython -i -c "import nlp; from nlp import *"
 }
 
 case $1 in
